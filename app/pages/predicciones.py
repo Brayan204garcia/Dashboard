@@ -3,24 +3,27 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from app.config import COLORS
-from app.data import load_df_mensual, load_predicciones_agregado_mes, load_predicciones_ancho
+from app.data import load_df_mensual, load_predicciones_ancho
 
 
 HORIZONS = {
     "Agosto 2025": {
         "label": "h+1 (Ago 2025)",
+        "fecha_mes": "2025-08-01",
         "proyeccion": "Stack_h+1 (Ago 2025)",
         "compromiso": "Hurdle_h+1 (Ago 2025)",
         "probabilidad": "P_h+1 (Ago 2025)",
     },
     "Septiembre 2025": {
         "label": "h+2 (Sep 2025)",
+        "fecha_mes": "2025-09-01",
         "proyeccion": "Stack_h+2 (Sep 2025)",
         "compromiso": "Hurdle_h+2 (Sep 2025)",
         "probabilidad": "P_h+2 (Sep 2025)",
     },
     "Octubre 2025": {
         "label": "h+3 (Oct 2025)",
+        "fecha_mes": "2025-10-01",
         "proyeccion": "Stack_h+3 (Oct 2025)",
         "compromiso": "Hurdle_h+3 (Oct 2025)",
         "probabilidad": "P_h+3 (Oct 2025)",
@@ -328,6 +331,28 @@ def _validate_sources(agregado, ancho):
         if projection_gap > 0.01:
             errors.append(f"Proyeccion no cuadra para {config['label']}: diferencia {projection_gap:,.2f}")
     return errors
+
+
+def _build_agregado_from_ancho(ancho):
+    rows = []
+    for config in HORIZONS.values():
+        compromiso = ancho[config["compromiso"]]
+        proyeccion = ancho[config["proyeccion"]]
+        probabilidad = ancho[config["probabilidad"]]
+        rows.append(
+            {
+                "fecha_mes": pd.Timestamp(config["fecha_mes"]),
+                "horizonte_label": config["label"],
+                "n_pares": len(ancho),
+                "demanda_total": compromiso.sum(),
+                "demanda_promedio": compromiso.mean(),
+                "demanda_mediana": compromiso.median(),
+                "pct_pares_activos": (compromiso.gt(0).mean() * 100) if len(ancho) else 0,
+                "P_promedio": probabilidad.mean(),
+                "stack_total": proyeccion.sum(),
+            }
+        )
+    return pd.DataFrame(rows)
 
 
 def _page_filters(ancho):
@@ -1135,8 +1160,8 @@ def _pipeline_q3(filtered, selected_channels):
 
 def render_predicciones():
     try:
-        agregado = load_predicciones_agregado_mes()
         ancho = _prepare_ancho(load_predicciones_ancho())
+        agregado = _build_agregado_from_ancho(ancho)
         mensual = load_df_mensual()
     except Exception as exc:
         st.error("No fue posible cargar los archivos de predicciones con el esquema esperado.")

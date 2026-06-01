@@ -114,6 +114,11 @@ def load_predicciones_largo():
 
 @st.cache_data(show_spinner=False)
 def load_predicciones_ancho():
+    stack_aliases = {
+        "Stack_h+1 (Ago 2025)": "Baseline_h+1 (Ago 2025)",
+        "Stack_h+2 (Sep 2025)": "Baseline_h+2 (Sep 2025)",
+        "Stack_h+3 (Oct 2025)": "Baseline_h+3 (Oct 2025)",
+    }
     required_columns = [
         "Channel",
         "Material Description",
@@ -123,9 +128,6 @@ def load_predicciones_ancho():
         "P_h+1 (Ago 2025)",
         "P_h+2 (Sep 2025)",
         "P_h+3 (Oct 2025)",
-        "Stack_h+1 (Ago 2025)",
-        "Stack_h+2 (Sep 2025)",
-        "Stack_h+3 (Oct 2025)",
         "Hurdle_total_3m",
         "P_promedio_3m",
         "longitud",
@@ -134,6 +136,18 @@ def load_predicciones_ancho():
         "dem_promedio_hist",
     ]
     df = _read_prediction_csv("predicciones_ancho.csv", required_columns)
+    missing_stack_columns = []
+    for stack_column, baseline_column in stack_aliases.items():
+        if stack_column not in df.columns:
+            if baseline_column in df.columns:
+                df[stack_column] = df[baseline_column]
+            else:
+                missing_stack_columns.append(stack_column)
+    if missing_stack_columns:
+        raise ValueError(
+            "El archivo predicciones_ancho.csv no tiene columnas de proyeccion requeridas: "
+            + ", ".join(missing_stack_columns)
+        )
     text_columns = ["Channel", "Material Description", "longitud", "patron", "celda_eda"]
     numeric_columns = [
         "Hurdle_h+1 (Ago 2025)",
