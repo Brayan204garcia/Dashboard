@@ -1,6 +1,6 @@
 import streamlit as st
 
-from app.config import PAGES
+from app.config import DEFAULT_PAGE, PAGES
 
 
 def render_topbar(page):
@@ -17,6 +17,7 @@ def render_topbar(page):
 
 
 def render_sidebar():
+    default_index = PAGES.index(DEFAULT_PAGE) if DEFAULT_PAGE in PAGES else 0
     st.sidebar.markdown(
         """
         <div class="sidebar-brand">
@@ -32,5 +33,6 @@ def render_sidebar():
     return st.sidebar.radio(
         "Pages",
         PAGES,
+        index=default_index,
         label_visibility="collapsed",
     )

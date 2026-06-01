@@ -4,6 +4,7 @@ LAYOUT = "wide"
 INITIAL_SIDEBAR_STATE = "expanded"
 
 PAGES = ["Resumen ejecutivo", "Clientes", "Productos", "Inventario", "Predicciones", "Team"]
+DEFAULT_PAGE = "Team"
 
 COLORS = {
     "bg": "#f3f4f6",
