@@ -2,7 +2,7 @@ import streamlit as st
 
 from app.layout import render_sidebar, render_topbar
 from app.config import INITIAL_SIDEBAR_STATE, LAYOUT, PAGE_ICON, PAGE_TITLE
-from app.pages import render_clientes, render_inventario, render_productos, render_resumen, render_team
+from app.pages import render_clientes, render_inventario, render_predicciones, render_productos, render_resumen, render_team
 from app.styles import inject_css
 
 
@@ -27,6 +27,8 @@ def main():
         render_productos()
     elif page == "Inventario":
         render_inventario()
+    elif page == "Predicciones":
+        render_predicciones()
     else:
         render_team()
 

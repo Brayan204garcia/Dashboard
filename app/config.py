@@ -3,7 +3,7 @@ PAGE_ICON = "AI"
 LAYOUT = "wide"
 INITIAL_SIDEBAR_STATE = "expanded"
 
-PAGES = ["Resumen ejecutivo", "Clientes", "Productos", "Inventario", "Team"]
+PAGES = ["Resumen ejecutivo", "Clientes", "Productos", "Inventario", "Predicciones", "Team"]
 
 COLORS = {
     "bg": "#f3f4f6",

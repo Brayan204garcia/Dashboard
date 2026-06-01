@@ -11,7 +11,7 @@ def render_team():
     members = [
         {"name": "Brayan Garcia Torres", "place": "Guataca, Mompos"},
         {"name": "Juan Carlos Pastas Palencia", "place": "Popayan, Cauca"},
-        {"name": "Juan Diego ", "place": "Lugar por definir"},
+        {"name": "Juan Diego Zambrano", "place": "Neiva, Huila"},
         {"name": "Michell Pulistar", "place": "Cali, Valle del Cauca"},
     ]
 

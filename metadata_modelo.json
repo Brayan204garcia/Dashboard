@@ -1,0 +1,115 @@
+{
+  "fecha_entrenamiento": "2026-05-31 21:16:46",
+  "random_state": 42,
+  "umbral_hurdle": 0.7,
+  "fecha_corte_historico": "2025-07-31",
+  "meses_validos_holdout": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "modelo_principal": "Hurdle τ=0.70",
+  "modelo_baseline": "Baseline S5 (RF)",
+  "nota_pred_stack": "pred_stack se conserva por compatibilidad, pero corresponde al baseline S5.",
+  "metricas_holdout": {
+    "baseline_s5": {
+      "WAPE": 0.5428,
+      "MAE": 23.457,
+      "R2": 0.704,
+      "Bias": 4.368
+    },
+    "hurdle_umbral": {
+      "WAPE": 0.4917,
+      "MAE": 21.25,
+      "R2": 0.74,
+      "Bias": -4.65
+    },
+    "hurdle_esperado": {
+      "WAPE": 0.4932,
+      "MAE": 21.314,
+      "R2": 0.74,
+      "Bias": -4.575
+    },
+    "hurdle_calibrado": {
+      "WAPE": 0.5666,
+      "MAE": 24.484,
+      "R2": 0.662,
+      "Bias": 6.539,
+      "estado": "DESCARTADA"
+    }
+  },
+  "features_usadas": [
+    "demanda_lag_1",
+    "demanda_lag_2",
+    "demanda_lag_3",
+    "demanda_lag_4",
+    "demanda_ma_3",
+    "demanda_ma_6",
+    "sell_in_lag_1",
+    "sell_in_lag_2",
+    "sell_in_lag_3",
+    "channel_inv_prom_lag_1",
+    "channel_inv_cierre_lag_1",
+    "channel_inv_max_lag_1",
+    "cobertura_lag_1",
+    "flag_quiebre_lag_1",
+    "flag_sobrestock_lag_1",
+    "mes_sin",
+    "mes_cos",
+    "periodo_t",
+    "es_black_friday",
+    "es_navidad",
+    "es_post_navidad",
+    "es_dia_madres",
+    "es_lanzamiento",
+    "es_valle_sep"
+  ],
+  "n_pares_predichos": 5297,
+  "n_horizontes": 3,
+  "sensibilidad_inventario_quiebre": [
+    {
+      "Estado": "🔴 Quiebre inminente",
+      "V1 (last) — N": 1751,
+      "V2 (mean_4w) — N": 1519,
+      "V1 (last) — %": 33.05644704549745,
+      "V2 (mean_4w) — %": 28.67660940154805,
+      "Delta pp": -4.379837643949401
+    },
+    {
+      "Estado": "🟠 Quiebre próximo",
+      "V1 (last) — N": 120,
+      "V2 (mean_4w) — N": 205,
+      "V1 (last) — %": 2.265433264111761,
+      "V2 (mean_4w) — %": 3.870115159524259,
+      "Delta pp": 1.6046818954124977
+    },
+    {
+      "Estado": "🟡 Cobertura ajustada",
+      "V1 (last) — N": 504,
+      "V2 (mean_4w) — N": 521,
+      "V1 (last) — %": 9.514819709269398,
+      "V2 (mean_4w) — %": 9.835756088351898,
+      "Delta pp": 0.32093637908250017
+    },
+    {
+      "Estado": "🟢 Saludable",
+      "V1 (last) — N": 2922,
+      "V2 (mean_4w) — N": 3052,
+      "V1 (last) — %": 55.1632999811214,
+      "V2 (mean_4w) — %": 57.6175193505758,
+      "Delta pp": 2.4542193694543997
+    },
+    {
+      "Estado": "🟢 Sin riesgo",
+      "V1 (last) — N": 0,
+      "V2 (mean_4w) — N": 0,
+      "V1 (last) — %": 0.0,
+      "V2 (mean_4w) — %": 0.0,
+      "Delta pp": 0.0
+    }
+  ]
+}

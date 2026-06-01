@@ -67,7 +67,10 @@ def inject_css():
             background: #1f2937;
             border-right: 1px solid rgba(255,255,255,.08);
         }}
-        section[data-testid="stSidebar"] * {{
+        section[data-testid="stSidebar"] .sidebar-brand,
+        section[data-testid="stSidebar"] .sidebar-brand *,
+        section[data-testid="stSidebar"] .sidebar-pages,
+        section[data-testid="stSidebar"] [data-testid="stRadio"] p {{
             color: #e5e7eb !important;
         }}
         section[data-testid="stSidebar"] > div {{

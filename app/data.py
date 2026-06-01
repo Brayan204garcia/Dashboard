@@ -4,9 +4,37 @@ import pandas as pd
 import streamlit as st
 
 
+DATA_ROOT = Path(__file__).resolve().parents[1]
+MAX_PREDICTION_FILE_SIZE = 25 * 1024 * 1024
+
+
+def _safe_data_path(filename):
+    root = DATA_ROOT.resolve()
+    path = (root / filename).resolve()
+    if root not in path.parents and path != root:
+        raise ValueError("Ruta de datos fuera del directorio permitido.")
+    if not path.exists() or not path.is_file():
+        raise FileNotFoundError(f"No se encontro el archivo requerido: {filename}")
+    if path.stat().st_size > MAX_PREDICTION_FILE_SIZE:
+        raise ValueError(f"El archivo {filename} excede el tamano maximo permitido.")
+    return path
+
+
+def _read_prediction_csv(filename, required_columns, parse_dates=None):
+    path = _safe_data_path(filename)
+    try:
+        df = pd.read_csv(path, parse_dates=parse_dates or [], encoding="utf-8-sig")
+    except UnicodeDecodeError:
+        df = pd.read_csv(path, parse_dates=parse_dates or [], encoding="cp1252")
+    missing = sorted(set(required_columns) - set(df.columns))
+    if missing:
+        raise ValueError(f"El archivo {filename} no tiene columnas requeridas: {', '.join(missing)}")
+    return df
+
+
 @st.cache_data(show_spinner=False)
 def load_df_panel():
-    data_path = Path(__file__).resolve().parents[1] / "df_panel_limpio.csv"
+    data_path = DATA_ROOT / "df_panel_limpio.csv"
     df = pd.read_csv(data_path, parse_dates=["fecha"])
     numeric_columns = ["channel_inv", "cust_sales", "sell_in"]
     df[numeric_columns] = df[numeric_columns].apply(pd.to_numeric, errors="coerce").fillna(0)
@@ -15,11 +43,119 @@ def load_df_panel():
 
 @st.cache_data(show_spinner=False)
 def load_df_mensual():
-    data_path = Path(__file__).resolve().parents[1] / "df_mensual_limpio.csv"
+    data_path = DATA_ROOT / "df_mensual_limpio.csv"
     df = pd.read_csv(data_path, parse_dates=["fecha_mes"])
     numeric_columns = ["sell_in", "cust_sales", "channel_inv_prom", "channel_inv_cierre", "channel_inv_max"]
     df[numeric_columns] = df[numeric_columns].apply(pd.to_numeric, errors="coerce").fillna(0)
     return df
+
+
+@st.cache_data(show_spinner=False)
+def load_predicciones_agregado_mes():
+    required_columns = [
+        "fecha_mes",
+        "horizonte_label",
+        "n_pares",
+        "demanda_total",
+        "demanda_promedio",
+        "demanda_mediana",
+        "pct_pares_activos",
+        "P_promedio",
+        "stack_total",
+    ]
+    df = _read_prediction_csv("predicciones_agregado_mes.csv", required_columns, parse_dates=["fecha_mes"])
+    numeric_columns = [column for column in required_columns if column not in {"fecha_mes", "horizonte_label"}]
+    df[numeric_columns] = df[numeric_columns].apply(pd.to_numeric, errors="coerce").fillna(0)
+    df["P_promedio"] = df["P_promedio"].clip(0, 1)
+    df["pct_pares_activos"] = df["pct_pares_activos"].clip(0, 100)
+    for column in ["n_pares", "demanda_total", "demanda_promedio", "demanda_mediana", "stack_total"]:
+        df[column] = df[column].clip(lower=0)
+    return df.sort_values("fecha_mes").reset_index(drop=True)
+
+
+@st.cache_data(show_spinner=False)
+def load_predicciones_largo():
+    required_columns = [
+        "Channel",
+        "Material Description",
+        "fecha_mes",
+        "horizonte",
+        "horizonte_label",
+        "P_Y_positiva",
+        "E_Y_condicional",
+        "pred_hurdle",
+        "pred_stack",
+        "dem_promedio_hist",
+        "dem_total_hist",
+        "n_meses_hist",
+        "longitud",
+        "patron",
+        "celda_eda",
+    ]
+    df = _read_prediction_csv("predicciones_largo.csv", required_columns, parse_dates=["fecha_mes"])
+    text_columns = ["Channel", "Material Description", "horizonte_label", "longitud", "patron", "celda_eda"]
+    numeric_columns = [
+        "horizonte",
+        "P_Y_positiva",
+        "E_Y_condicional",
+        "pred_hurdle",
+        "pred_stack",
+        "dem_promedio_hist",
+        "dem_total_hist",
+        "n_meses_hist",
+    ]
+    df[text_columns] = df[text_columns].fillna("").astype(str).apply(lambda col: col.str.strip())
+    df[numeric_columns] = df[numeric_columns].apply(pd.to_numeric, errors="coerce").fillna(0)
+    df["P_Y_positiva"] = df["P_Y_positiva"].clip(0, 1)
+    for column in ["E_Y_condicional", "pred_hurdle", "pred_stack"]:
+        df[column] = df[column].clip(lower=0)
+    return df.sort_values(["fecha_mes", "Channel", "Material Description"]).reset_index(drop=True)
+
+
+@st.cache_data(show_spinner=False)
+def load_predicciones_ancho():
+    required_columns = [
+        "Channel",
+        "Material Description",
+        "Hurdle_h+1 (Ago 2025)",
+        "Hurdle_h+2 (Sep 2025)",
+        "Hurdle_h+3 (Oct 2025)",
+        "P_h+1 (Ago 2025)",
+        "P_h+2 (Sep 2025)",
+        "P_h+3 (Oct 2025)",
+        "Stack_h+1 (Ago 2025)",
+        "Stack_h+2 (Sep 2025)",
+        "Stack_h+3 (Oct 2025)",
+        "Hurdle_total_3m",
+        "P_promedio_3m",
+        "longitud",
+        "patron",
+        "celda_eda",
+        "dem_promedio_hist",
+    ]
+    df = _read_prediction_csv("predicciones_ancho.csv", required_columns)
+    text_columns = ["Channel", "Material Description", "longitud", "patron", "celda_eda"]
+    numeric_columns = [
+        "Hurdle_h+1 (Ago 2025)",
+        "Hurdle_h+2 (Sep 2025)",
+        "Hurdle_h+3 (Oct 2025)",
+        "P_h+1 (Ago 2025)",
+        "P_h+2 (Sep 2025)",
+        "P_h+3 (Oct 2025)",
+        "Stack_h+1 (Ago 2025)",
+        "Stack_h+2 (Sep 2025)",
+        "Stack_h+3 (Oct 2025)",
+        "Hurdle_total_3m",
+        "P_promedio_3m",
+        "dem_promedio_hist",
+    ]
+    df[text_columns] = df[text_columns].fillna("").astype(str).apply(lambda col: col.str.strip())
+    df[numeric_columns] = df[numeric_columns].apply(pd.to_numeric, errors="coerce").fillna(0)
+    probability_columns = ["P_h+1 (Ago 2025)", "P_h+2 (Sep 2025)", "P_h+3 (Oct 2025)", "P_promedio_3m"]
+    df[probability_columns] = df[probability_columns].clip(0, 1)
+    value_columns = [column for column in numeric_columns if column not in probability_columns]
+    df[value_columns] = df[value_columns].clip(lower=0)
+    return df.sort_values("Hurdle_total_3m", ascending=False).reset_index(drop=True)
 
 
 executive_kpis = [
